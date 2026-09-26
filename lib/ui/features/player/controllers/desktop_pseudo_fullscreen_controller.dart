@@ -21,8 +21,20 @@ class DesktopPseudoFullscreenController {
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.windows ||
           defaultTargetPlatform == TargetPlatform.linux);
+  bool get _isMobile =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
+  bool _isMobileFullscreen = false;
 
   Future<bool> toggle() async {
+    if (_isMobile) {
+      _isMobileFullscreen = !_isMobileFullscreen;
+      await SystemChrome.setEnabledSystemUIMode(
+        _isMobileFullscreen ? SystemUiMode.immersiveSticky : SystemUiMode.edgeToEdge,
+      );
+      return _isMobileFullscreen;
+    }
     if (_isMacOS) {
       final nextFullscreenState = !await windowManager.isFullScreen();
 
@@ -113,6 +125,13 @@ class DesktopPseudoFullscreenController {
   }
 
   Future<bool> exitForRouteLeave() async {
+    if (_isMobile) {
+      if (_isMobileFullscreen) {
+        _isMobileFullscreen = false;
+        await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      }
+      return false;
+    }
     if (_isMacOS) {
       final isFullscreen = await windowManager.isFullScreen();
       if (isFullscreen) {
@@ -129,6 +148,7 @@ class DesktopPseudoFullscreenController {
   }
 
   Future<bool> syncState() async {
+    if (_isMobile) return _isMobileFullscreen;
     if (_isMacOS) {
       return windowManager.isFullScreen();
     }
