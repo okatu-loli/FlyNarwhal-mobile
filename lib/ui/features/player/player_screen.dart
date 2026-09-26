@@ -5173,6 +5173,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen>
 
   @override
   void dispose() {
+    if (!kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS)) {
+      unawaited(_fullscreenController.exitForRouteLeave());
+    }
     if (_isDesktopPlatform()) {
       windowManager.removeListener(this);
       unawaited(_windowAspectRatioController.release());
