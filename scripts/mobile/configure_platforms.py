@@ -18,7 +18,7 @@ def configure_android() -> None:
         element.get(permission) == "android.permission.INTERNET"
         for element in root.findall("uses-permission")
     ):
-        ET.Element(root, "uses-permission", {permission: "android.permission.INTERNET"})
+        ET.SubElement(root, "uses-permission", {permission: "android.permission.INTERNET"})
     tree.write(manifest, encoding="utf-8", xml_declaration=True)
 
 
