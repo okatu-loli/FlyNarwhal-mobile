@@ -1,0 +1,54 @@
+name: Build Mobile
+
+on:
+  push:
+    branches:
+      - feature/mobile-build
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.44.8'
+          cache: true
+      - name: Generate Android runner
+        run: flutter create --platforms=android --project-name fly_narwhal --no-pub .
+      - name: Configure NAS networking
+        run: python3 scripts/mobile/configure_platforms.py android
+      - run: flutter pub get
+      - run: flutter analyze --no-pub lib
+      - run: flutter build apk --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FlyNarwhal-Android-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+
+  ios:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.44.8'
+          cache: true
+      - name: Generate iOS runner
+        run: flutter create --platforms=ios --project-name fly_narwhal --no-pub .
+      - name: Configure NAS networking
+        run: python3 scripts/mobile/configure_platforms.py ios
+      - run: flutter pub get
+      - run: flutter build ios --release --no-codesign
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FlyNarwhal-iOS-unsigned-app
+          path: build/ios/iphoneos/Runner.app
+          if-no-files-found: error
